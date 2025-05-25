@@ -18,7 +18,7 @@ public class UsersController : ControllerBase
         _users = db.GetCollection<User>("Users");
     }
 
-    [Authorize(Roles = "Admin")]
+    [AllowAnonymous]
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
@@ -34,7 +34,7 @@ public class UsersController : ControllerBase
         };
 
         await _users.InsertOneAsync(user);
-
+        Console.WriteLine($"Created {user.Username}");
         return Ok(new
         {
             username = login,

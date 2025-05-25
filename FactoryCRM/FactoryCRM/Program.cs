@@ -1,30 +1,25 @@
-using MongoDB.Driver;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using FactoryCRM.Settings;
 using FactoryCRM.Services;
 using System.Text;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------- MongoDB CONFIGURATION START ----------
+// ========== MongoDB CONFIGURATION ==========
 var mongoConnection = builder.Configuration.GetConnectionString("MongoDb");
 var databaseName = builder.Configuration["DatabaseName"];
 
 var mongoClient = new MongoClient(mongoConnection);
 var mongoDb = mongoClient.GetDatabase(databaseName);
+Console.WriteLine($"MongoDB: connected to {mongoConnection}, DB = {databaseName}");
 
 builder.Services.AddSingleton<IMongoClient>(mongoClient);
-builder.Services.AddSingleton(mongoDb); // теперь ты сможешь внедрять IMongoDatabase в контроллеры/сервисы
-// ---------- MongoDB CONFIGURATION END ----------
+builder.Services.AddSingleton(mongoDb);
 
-// Add services to the container.
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-
+// ========== JWT CONFIGURATION ==========
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<AuthService>();
 
@@ -46,10 +41,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// ========== SWAGGER ==========
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "FactoryCRM API", Version = "v1" });
+});
 
+// ========== BUILD ==========
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ========== MIDDLEWARE ==========
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -60,9 +63,10 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseAuthorization();
-
 app.MapControllers();
+
+// ========== STATIC FILES (React SPA from wwwroot) ==========
+app.UseDefaultFiles(); // index.html
+app.UseStaticFiles();  // js, css, etc.
 
 app.Run();

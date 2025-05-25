@@ -1,26 +1,37 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { LoginPage } from "./auth/LoginPage";
+import { AdminPage } from "./pages/AdminPage";
+import { ManagerPage } from "./pages/ManagerPage";
+import { WorkerPage } from "./pages/WorkerPage";
+import { AuthProvider } from "./auth/AuthContext";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { AssignPage } from "./pages/AssignPage";
 
-function App() {
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/assign"
+            element={<ProtectedRoute role="Admin"><AssignPage /></ProtectedRoute>}
+          />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/admin"
+            element={<ProtectedRoute role="Admin"><AdminPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/manager"
+            element={<ProtectedRoute role="Manager"><ManagerPage /></ProtectedRoute>}
+          />
+          <Route
+            path="/worker"
+            element={<ProtectedRoute role="Sewer"><WorkerPage /></ProtectedRoute>}
+          />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;

@@ -32,7 +32,8 @@ public class AuthController : ControllerBase
         return Ok(new LoginResponse
         {
             Token = token,
-            Role = user.Role.ToString()
+            Role = user.Role.ToString(),
+            UserId = user.Id
         });
     }
 }
