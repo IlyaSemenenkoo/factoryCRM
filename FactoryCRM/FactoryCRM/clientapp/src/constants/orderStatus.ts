@@ -7,6 +7,14 @@ export enum OrderStatus {
   Stocked = 5
 }
 
+export const RoleEnumMap: Record<string, number> = {
+  Admin: 0,
+  Manager: 1,
+  Sewer: 2,
+  Shoemaker: 3,
+  Packer: 4
+};
+
 export const statusLabels: Record<OrderStatus, string> = {
   [OrderStatus.New]: "Новий",
   [OrderStatus.Sewing]: "Пошив",

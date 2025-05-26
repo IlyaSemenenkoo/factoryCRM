@@ -1,12 +1,24 @@
 import { Navigate } from "react-router-dom";
-import { useAuthContext } from "./AuthContext";
+import { useAuth } from "./AuthContext";
 import { JSX } from "react";
 
-export function ProtectedRoute({ children, role }: { children: JSX.Element; role: string }) {
-  const { token, role: userRole } = useAuthContext();
+export function ProtectedRoute({
+  children,
+  roles,
+}: {
+  children: JSX.Element;
+  roles?: string[]; // ⬅️ масив ролей
+}) {
+  const { user, isReady } = useAuth();
 
-  if (!token) return <Navigate to="/login" replace />;
-  if (userRole !== role) return <Navigate to="/login" replace />;
+  if (!isReady) return null;
+
+  if (!user) return <Navigate to="/login" />;
+
+  // Якщо задані ролі — перевіряємо чи роль користувача присутня
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/login" />;
+  }
 
   return children;
 }

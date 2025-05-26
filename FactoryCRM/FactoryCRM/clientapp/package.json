@@ -18,6 +18,7 @@
 "scripts": {
   "dev": "vite",
   "build": "vite build",
+  "build:deploy": "vite build && xcopy /E /Y dist\\* ..\\wwwroot\\",
   "preview": "vite preview"
 },
   "eslintConfig": {

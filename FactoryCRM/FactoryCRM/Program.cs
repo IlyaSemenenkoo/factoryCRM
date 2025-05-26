@@ -1,10 +1,11 @@
+using FactoryCRM.Services;
+using FactoryCRM.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MongoDB.Driver;
-using FactoryCRM.Settings;
-using FactoryCRM.Services;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,7 +43,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // ========== SWAGGER ==========
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -68,5 +74,7 @@ app.MapControllers();
 // ========== STATIC FILES (React SPA from wwwroot) ==========
 app.UseDefaultFiles(); // index.html
 app.UseStaticFiles();  // js, css, etc.
+
+app.MapFallbackToFile("index.html");
 
 app.Run();

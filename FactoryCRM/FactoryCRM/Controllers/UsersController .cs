@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using FactoryCRM.Models;
 using FactoryCRM.DTOs;
-using FactoryCRM.Enums;
+using BCrypt.Net;
 
 namespace FactoryCRM.Controllers;
 
@@ -18,17 +18,18 @@ public class UsersController : ControllerBase
         _users = db.GetCollection<User>("Users");
     }
 
-    [AllowAnonymous]
+    [Authorize(Roles = "Admin")]
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
         var login = $"{request.Role.ToString().ToLower()}.{Random.Shared.Next(10000, 99999)}";
         var password = GeneratePassword(8);
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
 
         var user = new User
         {
             Username = login,
-            PasswordHash = password,
+            PasswordHash = hashedPassword,
             Role = request.Role,
             FullName = request.FullName
         };

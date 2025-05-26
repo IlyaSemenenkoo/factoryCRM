@@ -24,7 +24,7 @@ public class AuthController : ControllerBase
     {
         var user = await _users.Find(u => u.Username == request.Username).FirstOrDefaultAsync();
 
-        if (user == null || user.PasswordHash != request.Password)
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return Unauthorized("Wrong login or password");
 
         var token = _authService.GenerateToken(user);

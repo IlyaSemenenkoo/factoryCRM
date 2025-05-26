@@ -6,29 +6,58 @@ import { WorkerPage } from "./pages/WorkerPage";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { AssignPage } from "./pages/AssignPage";
+import { AppLayout } from "./components/layout/AppLayout";
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route
-            path="/assign"
-            element={<ProtectedRoute role="Admin"><AssignPage /></ProtectedRoute>}
-          />
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/login" element={<LoginPage />} />
+
           <Route
             path="/admin"
-            element={<ProtectedRoute role="Admin"><AdminPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute roles={["Admin"]}>
+                <AppLayout>
+                  <AdminPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
           />
+
           <Route
             path="/manager"
-            element={<ProtectedRoute role="Manager"><ManagerPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute roles={["Manager"]}>
+                <AppLayout>
+                  <ManagerPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
           />
+
           <Route
             path="/worker"
-            element={<ProtectedRoute role="Sewer"><WorkerPage /></ProtectedRoute>}
+            element={
+              <ProtectedRoute roles={["Sewer", "Shoemaker", "Packer"]}>
+                <AppLayout>
+                  <WorkerPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/assign"
+            element={
+              <ProtectedRoute roles={["Admin"]}>
+                <AppLayout>
+                  <AssignPage />
+                </AppLayout>
+              </ProtectedRoute>
+            }
           />
         </Routes>
       </BrowserRouter>

@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { getAllUsers, createUser, User } from "../api/users";
-import { useAuthContext } from "../auth/AuthContext";
+import { useAuth } from "../auth/AuthContext";
+import { RoleEnumMap } from "../constants/orderStatus";
 
 export function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState("Sewer");
+  const [role, setRole] = useState<keyof typeof RoleEnumMap>("Sewer");
   const [newUserInfo, setNewUserInfo] = useState<null | { username: string; password: string }>(null);
 
-  const { logout } = useAuthContext();
+  const { logout } = useAuth();
 
   // Завантаження всіх користувачів при відкритті сторінки
   useEffect(() => {
@@ -24,7 +25,8 @@ export function AdminPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await createUser(fullName, role);
+      const created = await createUser(fullName, RoleEnumMap[role]);
+
 
       // Додаємо користувача в список
       setUsers(prev => [
@@ -47,7 +49,7 @@ export function AdminPage() {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
       <h1>👑 Панель адміністратора</h1>
 
       <section>
@@ -92,7 +94,7 @@ export function AdminPage() {
               <tr key={i}>
                 <td>{u.fullName}</td>
                 <td>{u.username}</td>
-                <td>{u.role}</td>
+                <td>{String(u.role)}</td>
               </tr>
             ))}
           </tbody>

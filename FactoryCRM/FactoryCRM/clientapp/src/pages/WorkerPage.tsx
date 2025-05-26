@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { getMyOrders, completeOrderStep, Order } from "../api/orders";
-import { useAuthContext } from "../auth/AuthContext";
+import { useAuth } from "../auth/AuthContext";
 import { OrderStatus, statusLabels, statusColors } from "../constants/orderStatus";
 
 export function WorkerPage() {
-  const { role, logout } = useAuthContext();
+  const { user, logout } = useAuth();
+  const role = user?.role;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
 

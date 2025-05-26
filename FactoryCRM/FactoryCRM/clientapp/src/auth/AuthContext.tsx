@@ -1,38 +1,66 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
-type Role = "Admin" | "Manager" | "Sewer" | "Shoemaker" | "Packer";
+// Тип користувача
+type User = {
+  token: string;
+  role: "Admin" | "Manager" | "Sewer" | "Shoemaker" | "Packer";
+  userId: string;
+};
 
-interface AuthContextType {
-  token: string | null;
-  role: Role | null;
+// Тип контексту
+type AuthContextType = {
+  user: User | null;
+  login: (user: User) => void;
   logout: () => void;
-}
+  isReady: boolean; // чек для ініціалізації
+};
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuthContext = () => useContext(AuthContext)!;
+// Провайдер авторизації
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isReady, setIsReady] = useState(false); // чи вже перевірено localStorage
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
-
+  // При старті — перевіряємо localStorage
   useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedRole = localStorage.getItem("role") as Role | null;
-    setToken(savedToken);
-    setRole(savedRole);
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role") as User["role"];
+    const userId = localStorage.getItem("userId");
+
+    if (token && role && userId) {
+      setUser({ token, role, userId });
+    }
+
+    setIsReady(true);
   }, []);
 
+  // Функція логіну
+  const login = (userData: User) => {
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("role", userData.role);
+    localStorage.setItem("userId", userData.userId);
+    setUser(userData);
+  };
+
+  // Функція логауту
   const logout = () => {
-    localStorage.clear();
-    setToken(null);
-    setRole(null);
-    window.location.href = "/login";
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userId");
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ token, role, logout }}>
-      {children}
+    <AuthContext.Provider value={{ user, login, logout, isReady }}>
+      {isReady ? children : null}
     </AuthContext.Provider>
   );
-};
+}
+
+// Хук для доступу до авторизації
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  return context;
+}

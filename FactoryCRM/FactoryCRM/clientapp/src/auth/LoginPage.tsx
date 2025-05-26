@@ -1,23 +1,78 @@
 import { useState } from "react";
-import { useAuth } from "./useAuth";
+import { useNavigate } from "react-router-dom";
+import { api } from "../api/axios";
+import { useAuth } from "./AuthContext";
 
 export function LoginPage() {
-  const { login, error } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const onSubmit = (e: React.FormEvent) => {
+  // Обробка форми логіну
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    login(username, password);
+
+    try {
+      const res = await api.post("/auth/login", {
+        username,
+        password,
+      });
+
+      const { token, role, userId } = res.data;
+
+      // Зберігаємо у контекст і localStorage
+      login({ token, role, userId });
+
+      // Перенаправляємо користувача на відповідну сторінку
+      switch (role) {
+        case "Admin":
+          navigate("/admin");
+          break;
+        case "Manager":
+          navigate("/manager");
+          break;
+        case "Sewer":
+        case "Shoemaker":
+        case "Packer":
+          navigate("/worker");
+          break;
+        default:
+          alert("Невідома роль користувача");
+          break;
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Невірний логін або пароль");
+    }
   };
 
   return (
-    <form onSubmit={onSubmit}>
-      <h2>Вход</h2>
-      <input value={username} onChange={e => setUsername(e.target.value)} placeholder="Логин" />
-      <input value={password} onChange={e => setPassword(e.target.value)} type="password" placeholder="Пароль" />
-      <button type="submit">Войти</button>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-    </form>
+    <div style={{ padding: "40px", maxWidth: "400px", margin: "auto" }}>
+      <h1>🔐 Вхід у систему</h1>
+      <form onSubmit={handleSubmit}>
+        <div>
+          <label>Логін:</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div style={{ marginTop: "10px" }}>
+          <label>Пароль:</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" style={{ marginTop: "20px" }}>
+          Увійти
+        </button>
+      </form>
+    </div>
   );
 }

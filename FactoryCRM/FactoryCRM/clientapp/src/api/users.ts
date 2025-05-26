@@ -16,7 +16,7 @@ export async function getAllUsers(): Promise<User[]> {
   return res.data;
 }
 
-export async function createUser(fullName: string, role: string) {
+export async function createUser(fullName: string, role: number) {
   const res = await api.post(
     "/users",
     { fullName, role },
@@ -26,5 +26,8 @@ export async function createUser(fullName: string, role: string) {
       },
     }
   );
-  return res.data; // { username, password, fullName }
+  return res.data;
 }
+
+
+
