@@ -1,78 +1,80 @@
+// src/pages/LoginPage.tsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api/axios";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../auth/AuthContext";
 
-export function LoginPage() {
+export const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Обробка форми логіну
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
 
     try {
-      const res = await api.post("/auth/login", {
-        username,
-        password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
 
-      const { token, role, userId } = res.data;
+      if (!res.ok) throw new Error("Невірний логін або пароль");
 
-      // Зберігаємо у контекст і localStorage
-      login({ token, role, userId });
+      const data = await res.json();
+      login({ token: data.token, role: data.role, userId: data.userId });
 
-      // Перенаправляємо користувача на відповідну сторінку
-      switch (role) {
-        case "Admin":
-          navigate("/admin");
-          break;
-        case "Manager":
-          navigate("/manager");
-          break;
-        case "Sewer":
-        case "Shoemaker":
-        case "Packer":
-          navigate("/worker");
-          break;
-        default:
-          alert("Невідома роль користувача");
-          break;
+      switch (data.role) {
+        case "Admin": navigate("/admin"); break;
+        case "Manager": navigate("/manager"); break;
+        default: navigate("/worker"); break;
       }
-    } catch (err) {
-      console.error(err);
-      alert("Невірний логін або пароль");
+    } catch {
+      setError("Невірний логін або пароль");
     }
   };
 
   return (
-    <div style={{ padding: "40px", maxWidth: "400px", margin: "auto" }}>
-      <h1>🔐 Вхід у систему</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Логін:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-        </div>
-        <div style={{ marginTop: "10px" }}>
-          <label>Пароль:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" style={{ marginTop: "20px" }}>
-          Увійти
-        </button>
-      </form>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-full max-w-md">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          Вхід у FactoryCRM
+        </h1>
+
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Логін</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Пароль</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            />
+          </div>
+          {error && (
+            <p className="text-sm text-red-600 text-center">{error}</p>
+          )}
+          <button
+            type="submit"
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-lg font-semibold transition"
+          >
+            Увійти
+          </button>
+        </form>
+      </div>
     </div>
   );
-}
+};
